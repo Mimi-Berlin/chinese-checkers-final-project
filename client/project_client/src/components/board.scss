@@ -1,0 +1,312 @@
+/* board.scss - עיצוב מתקדם עם מיקום במרכז */
+
+@function getGap($length, $ratio){
+  $l: $length * 2;
+  @return $l / (12 + 12 * $ratio); 
+}
+
+$width: 250px;
+$height: $width * sqrt(3);
+$rotateY: round(($width * 2 * 2 / 3 ) * sqrt(3) / 2);  
+$containerX: 2 * $width;
+$containerY: 2 * $rotateY;
+$radius: getGap($width, 0.4) / 2;
+$gap: 2 * 0.4 * $radius;
+
+// צבעים משופרים
+$red: #ff6b9d;
+$orange: #ffa726;
+$yellow: #ffeb3b;
+$green: #66bb6a;
+$bluegreen: #26c6da;
+$blue: #5c6bc0;
+$purple: #ab47bc;
+
+$bgcolorlist: (
+    0: $red,
+    1: $orange,
+    2: $purple,
+    3: $green,
+    4: $bluegreen,
+    5: $blue,
+    6: $yellow
+);
+
+/* קונטיינר עיקרי שמרכז את הלוח */
+.board-container {
+  /* מיקום מוחלט במרכז הדף */
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 10;
+  
+  /* וידוא שהלוח נשאר במרכז גם במכשירים קטנים */
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+/* קונטיינר הלוח הראשי */
+.App {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  /* רקע עגול עם צל כמו בGameBoard */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 115%;
+    height: 115%;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    transform: translate(-50%, -50%) scale(0.95);
+    z-index: 0;
+  }
+  
+  /* אנימציית כניסה */
+  animation: boardEnter 0.6s ease-out;
+}
+
+@keyframes boardEnter {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* עיצוב הכדורים המשופר */
+.chess {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  color: white;
+  font-size: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 10;
+  
+  /* אנימציות חלקות */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* צל עדין */
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  
+  /* אנימציית כניסה לכדור */
+  animation: pieceEnter 0.4s ease-out backwards;
+  
+  /* אפקט hover מתקדם */
+  &:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.15),
+      0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+  }
+  
+  /* אפקט לחיצה */
+  &:active {
+    transform: translate(-50%, -50%) scale(1.05);
+    transition: all 0.1s ease-in-out;
+  }
+  
+  /* כדור נבחר */
+  &.selected {
+    transform: translate(-50%, -50%) scale(1.3);
+    box-shadow: 
+      0 0 20px rgba(59, 130, 246, 0.6),
+      0 8px 25px rgba(0, 0, 0, 0.2);
+    border: 3px solid #3b82f6;
+    z-index: 30;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: -6px;
+      right: -6px;
+      bottom: -6px;
+      border: 2px solid rgba(59, 130, 246, 0.4);
+      border-radius: 50%;
+      animation: selectedPulse 2s infinite;
+    }
+  }
+  
+  /* מהלך אפשרי */
+  &.possible-move {
+    background: rgba(34, 197, 94, 0.8) !important;
+    border: 3px dashed #15803d;
+    transform: translate(-50%, -50%) scale(0.9);
+    animation: possibleMovePulse 1.5s infinite;
+    
+    &:hover {
+      transform: translate(-50%, -50%) scale(1.1);
+      background: rgba(34, 197, 94, 1) !important;
+    }
+  }
+  
+  /* כדור ריק */
+  &.empty {
+    background: rgba(229, 231, 235, 0.6);
+    width: 12px;
+    height: 12px;
+    box-shadow: none;
+    cursor: default;
+    
+    &:hover {
+      transform: translate(-50%, -50%) scale(1);
+      box-shadow: none;
+    }
+    
+    &.possible-move {
+      cursor: pointer;
+      background: rgba(34, 197, 94, 0.6);
+      border: 2px dashed #15803d;
+      width: 20px;
+      height: 20px;
+      
+      &:hover {
+        background: rgba(34, 197, 94, 0.8);
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+    }
+  }
+}
+
+/* מספרים בכדורים */
+.piece-number {
+  font-size: 6px;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  user-select: none;
+}
+
+/* אנימציות */
+@keyframes pieceEnter {
+  from {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes selectedPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes possibleMovePulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.0);
+  }
+}
+
+/* מידע המשחק */
+.game-info {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  color: #374151;
+  z-index: 50;
+  text-align: center;
+  min-width: 200px;
+  
+  div {
+    margin: 2px 0;
+    font-weight: 500;
+  }
+}
+
+/* אפקטים רספונסיביים */
+@media (max-width: 768px) {
+  .board-container {
+    max-width: 95vw;
+    max-height: 80vh;
+  }
+  
+  .chess {
+    width: 20px;
+    height: 20px;
+    
+    &.empty {
+      width: 10px;
+      height: 10px;
+      
+      &.possible-move {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+  
+  .piece-number {
+    font-size: 5px;
+  }
+  
+  .game-info {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .board-container {
+    max-width: 98vw;
+    max-height: 75vh;
+  }
+  
+  .chess {
+    width: 18px;
+    height: 18px;
+    
+    &.empty {
+      width: 8px;
+      height: 8px;
+      
+      &.possible-move {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+}
+
+/* אנימציית תזוזה חלקה */
+.chess {
+  &.moving {
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+}
